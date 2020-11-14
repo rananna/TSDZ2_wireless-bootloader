@@ -112,7 +112,7 @@ To enter DFU mode on the wireless TSDZ2 controller, press the button on the boar
 ### 3. Firmware memory map
 See this video for an explanation of the memory map for the nRF52840 board:
 [![video](https://img.youtube.com/vi/MZ6Qz32tY0c/hqdefault.jpg)](https://youtu.be/MZ6Qz32tY0c)
-#####4 Buttonless DFU DFU details
+### 4. Buttonless DFU DFU details
 a BLE packet is used to switch to DFU mode without physical contact (buttonless DFU) .
 
 The way it works is pretty simple, to switch, we write to the retention register GPREGRET a flag (BOOTLOADER_DFU_START = 0xB1) and then we do a soft reset. This is done in bootloader_start() in ble_dfu.c file.

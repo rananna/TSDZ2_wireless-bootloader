@@ -44,24 +44,32 @@ Here are the boot-up steps that occur from reset to starting the application:
 First, the MBR is booted.
 The MBR looks up the location of the bootloader.
 If a bootloader is found, it is run by the MBR.
-A secure bootloader (1) uses cryptographic operations to verify the signature of the firmware (Authenticity) and (2) that is it not corrupted (Data Integrity). This is performed in two scenarios: at bootup, and when a new firmware image is received.
+A secure bootloader:
+ (1) uses cryptographic operations to verify the signature of the firmware (Authenticity) and 
+ (2) that is it not corrupted (Data Integrity). This is performed in two scenarios: at bootup, and when a new firmware image is received.
 If a bootloader is not found, the MBR boots the image that follows it (the MBR) at address 0x1000 (the SoftDevice).
 The SoftDevice then boots the application.
-There are four different boot validation modes that can be configured.
 
-Signature validation (ECDSA) – most secure, and data integrity check.
-Hash validation (SHA-256) – less security, and data integrity check.
-CRC validation (CRC32) – no security, only data integrity check.
-No validation – no security, no integrity check.
-This is configured as part of the firmware update package. If a signature mode is specified, then the signature will exist in the package. For hash and CRC validation, the cryptographic digest is created on-chip and written to flash when the update is applied.
+There are four different boot validation modes that can be configured:
+
+1. Signature validation (ECDSA) – most secure, and data integrity check.
+
+2. Hash validation (SHA-256) – less security, and data integrity check.
+  
+3. CRC validation (CRC32) – no security, only data integrity check.
+  
+4.  No validation – no security, no integrity check.
+
+These modes are configured as part of the firmware update package. If a signature mode is specified, then the signature will exist in the package. For hash and CRC validation, the cryptographic digest is created on-chip and written to flash when the update is applied.
 
 Important Note: the boot validation is independent of the firmware update validation process. This means that the update package is signed regardless of the secure boot mode contained in it. This ensures that the system is protected from unauthorized firmware updates even with no boot validation.
+
 ## The Device Firmware Update (DFU) Process
 The DFU process can be run by using one of the following Nordic tools. Each of these tools is used to send the DFU package to the target device to perform the update.
 
-The nrfutil command-line tool
-nRF Connect for desktop
-nRF Connect for mobile
+* The nrfutil command-line tool
+* nRF Connect for desktop
+* nRF Connect for mobile
 Two devices are involved in the DFU process: the DFU controller which transfers the DFU package, and the DFU target which receives and applies the DFU package. (the TSDZ2 remote or controller)
 ### Step 1. Generate DFU .zip packet
 A DFU .zip packet is required for the DFU master to send new image(s) to the TSDZ2 remote control or controller boards.(the target) The .zip file contains the image hex file(s) we want to update and the init packet, including the signature of the packet. 
@@ -113,8 +121,6 @@ To enter DFU mode on the wireless TSDZ2 controller, press the button on the boar
 See this video for an explanation of the memory map for the nRF52840 board:
 [![video](https://img.youtube.com/vi/MZ6Qz32tY0c/hqdefault.jpg)](https://youtu.be/MZ6Qz32tY0c)
 ### 4. Buttonless DFU DFU details
-a BLE packet is used to switch to DFU mode without physical contact (buttonless DFU) .
-
+a BLE packet is used to switch to DFU mode without physical contact (buttonless DFU).
 The way it works is pretty simple, to switch, we write to the retention register GPREGRET a flag (BOOTLOADER_DFU_START = 0xB1) and then we do a soft reset. This is done in bootloader_start() in ble_dfu.c file.
 Since the retention register keeps its value after the reset, the bootloader will check this value when it booting up after the reset and then can enter DFU mode instead of starting the normal application. This is the same as when we hold the Bootloader button and trigger a reset.
-

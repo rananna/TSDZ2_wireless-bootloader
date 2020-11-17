@@ -7,10 +7,12 @@ A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike rem
 - Bootloader is self upgradable via either OTA or USB Serial
 - Bootloader will time out and load a valid application if no DFU is initiated 
 - Optionally, the firmware upgrade can be downgradable (`NRF_DFU_BL_ALLOW_DOWNGRADE` Makefile option)
+
 ## DFU mode will be initiated by any one of the following actions:
 - Bootloader cannot find a valid application to load
 - "Always on" access through bluetooth ("Buttonless" DFU)
 -  pressing the DFU button on the board or the wireless remote (see appendix below)
+
 ## The Garmin S340 softdevice
 This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
 ## Release Binary Hex file

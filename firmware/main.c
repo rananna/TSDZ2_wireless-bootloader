@@ -45,7 +45,6 @@
  *
  */
 
-
 #include <stdint.h>
 #include "boards.h"
 #include "bsp.h"
@@ -65,9 +64,6 @@
 #include "nrf_drv_clock.h"
 #include "nrf_delay.h"
 #include "nrf_power.h"
-
-
-
 
 static void do_reset(void)
 {
@@ -90,7 +86,7 @@ static void on_error(void)
 
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_file_name)
 {
-    
+
     on_error();
 }
 
@@ -102,7 +98,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
 void app_error_handler_bare(uint32_t error_code)
 {
-    
+
     on_error();
 }
 
@@ -146,27 +142,24 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
     }
 }
 
-
 /**@brief Function for application main entry. */
 int main(void)
 {
     uint32_t ret_val;
-    
+
     // Protect MBR and bootloader code from being overwritten.
     ret_val = nrf_bootloader_flash_protect(0, MBR_SIZE, false);
     APP_ERROR_CHECK(ret_val);
-        ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
+    ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
     APP_ERROR_CHECK(ret_val);
 
     if (LEDS_NUMBER > 0)
     {
-      
+
         bsp_board_init(BSP_INIT_LEDS);
         ret_val = bsp_init(BSP_INIT_LEDS, NULL);
         APP_ERROR_CHECK(ret_val);
     }
-
-   
 
     ret_val = app_timer_init();
     APP_ERROR_CHECK(ret_val);

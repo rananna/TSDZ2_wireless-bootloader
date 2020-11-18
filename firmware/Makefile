@@ -222,6 +222,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
+CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 
 ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)
 CFLAGS += -DNRF_DFU_BL_ALLOW_DOWNGRADE=1
@@ -251,7 +252,7 @@ ASMFLAGS += -DNRF_SD_BLE_API_VERSION=6
 ASMFLAGS += -DS340
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
-
+ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 
 
 ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)

@@ -62,7 +62,7 @@ extern "C" {
 
 #define BUTTONS_LIST { BUTTON_1 }
 
-#define BSP_BUTTON_0   BUTTON_1
+// #define BSP_BUTTON_0   BUTTON_1
 
 
 #define RX_PIN_NUMBER  19

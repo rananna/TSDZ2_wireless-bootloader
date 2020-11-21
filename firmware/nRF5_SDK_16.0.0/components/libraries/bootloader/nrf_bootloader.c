@@ -515,6 +515,7 @@ ret_code_t nrf_bootloader_init(nrf_dfu_observer_t observer)
         nrf_dfu_settings_backup(flash_write_callback);
         ASSERT(m_flash_write_done);
 
+        bsp_board_led_off(BSP_BOARD_LED_1);
         nrf_bootloader_app_start();
         NRF_LOG_ERROR("Unreachable");
     }

@@ -4,12 +4,19 @@ OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ./nRF5_SDK_16.0.0
 PROJ_DIR := .
+DEBUG ?= 0
 
 
+
+ifeq ($(DEBUG), 1)
+SOFT_DEVICE = $(PROJ_DIR)/include/S340_and_TSDZ2_remote.hex
+else
 SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s340/hex/ANT_s340_nrf52840_6.1.1.hex
+endif
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
 LINKER_SCRIPT  := secure_bootloader_gcc_nrf52.ld
+
 
 
 # Source files common to all targets
@@ -25,7 +32,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/usbd/app_usbd_core.c \
   $(SDK_ROOT)/components/libraries/usbd/app_usbd_serial_num.c \
   $(SDK_ROOT)/components/libraries/usbd/app_usbd_string_desc.c \
-  $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/crc32/crc32.c \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
@@ -115,6 +121,15 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
 
+ifeq ($(DEBUG), 1)
+SRC_FILES += \
+  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
+  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
+  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
+  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
+  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
+
+endif
 # Include folders common to all targets
 INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crypto/backend/micro_ecc \
@@ -192,13 +207,23 @@ INC_FOLDERS += \
   $(SDK_ROOT)/modules/nrfx/drivers/include \
   $(SDK_ROOT)/components/libraries/pwm \
 
+
 # Libraries common to all targets
 LIB_FILES += \
   $(SDK_ROOT)/external/nrf_oberon/lib/cortex-m4/hard-float/liboberon_3.0.1.a \
   $(SDK_ROOT)/external/nrf_cc310_bl/lib/cortex-m4/hard-float/libnrf_cc310_bl_0.9.12.a \
 
+ifeq ($(DEBUG), 1)
+OPT = -Og -g3
+else
 OPT = -O3 -g3
+endif
+ifeq ($(DEBUG), 1)
+OPT = -Og -g3
+else
 OPT += -flto
+endif
+
 
 # C flags common to all targets
 CFLAGS += $(OPT)
@@ -222,7 +247,12 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
-CFLAGS += -DCONFIG_GPIO_AS_PINRESET
+ifeq ($(DEBUG),1)
+CFLAGS += -DBOOTLOADER_DEBUG
+CFLAGS += -DDEBUG_NRF
+CFLAGS += -DDEBUG
+CFLAGS += -DNRF_DFU_DEBUG_VERSION
+endif
 
 ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)
 CFLAGS += -DNRF_DFU_BL_ALLOW_DOWNGRADE=1
@@ -252,7 +282,11 @@ ASMFLAGS += -DNRF_SD_BLE_API_VERSION=6
 ASMFLAGS += -DS340
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
-ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
+
+ifeq ($(DEBUG),1)
+ASMFLAGS += -DBOOTLOADER_DEBUG
+ASMFLAGS += -DNRF_DFU_DEBUG_VERSION
+endif
 
 
 ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)

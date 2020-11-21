@@ -2,16 +2,19 @@
 A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike remote control and motor controller 
 ## Bootloader Features
 - Based on the 'Secure Bootloader' example provided in the Nordic nRF52 development kit 
-- DFU over BLE (bluetooth low energy) OTA ("buttonless DFU")
+- DFU over BLE (bluetooth low energy) OTA 
 - DFU using USB (Windows or Unix PC's)
 - Bootloader is self upgradable via either OTA or USB Serial
 - Bootloader will time out and load a valid application if no DFU is initiated 
+- Bootloader will sense gpio button pins on start up.
+  If button is pressed then an adjustable timer starts, when timed out enters DFU mode. 
+  If button is released before timeout, the bootloader will start the installed application immediately.
 - Optionally, the firmware upgrade can be downgradable (`NRF_DFU_BL_ALLOW_DOWNGRADE` Makefile option)
 
 ## DFU mode will be initiated by any one of the following actions:
 - Bootloader cannot find a valid application to load
-- "Always on" access through bluetooth ("Buttonless" DFU)
--  pressing the DFU button on the board or the wireless remote (see appendix below)
+- Bluetooth access in DFU mode
+-  pressing the DFU button on the board or the wireless remote (see "Bootloader Features" above)
 
 ## The Garmin S340 softdevice
 This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
@@ -87,7 +90,7 @@ Explanation:
 ### Step 2. Performing DFU (Bluetooth or USB)
 #### BLE DFU
 Now you have your DFU .zip file containing the application update and the bootloader and bootloader settings installed on the board, it's time to actually do wireless DFU.
-1.  Verify the bootloader starts advertising as "TSDZ2".You’ll need to make sure the package you created in step #7 is accessible on the mobile phone you’re using (if you’re using nRF Connect for Mobile). Now, connect to the DFU target:
+1.  Start DFU mode Verify the bootloader starts advertising as "TSDZ2_DFU".You’ll need to make sure the package you created in step #7 is accessible on the mobile phone you’re using (if you’re using nRF Connect for Mobile). Now, connect to the DFU target:
 
 2. Copy the DFU .zip file you just generated to the phone or to the folder on PC of your choice.
    

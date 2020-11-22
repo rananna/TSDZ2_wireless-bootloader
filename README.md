@@ -1,7 +1,8 @@
 # TSDZ2 Bluetooth Bootloader
 A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike remote control and motor controller 
 ## Bootloader Features
-- Based on the 'Secure Bootloader' example provided in the Nordic nRF52 development kit 
+ Based on the 'Secure Bootloader' example provided in the Nordic nRF52 development kit. A video showing a DFU process can be seen here:
+[![video](https://img.youtube.com/vi/va3LJoiosoc/hqdefault.jpg)](https://youtu.be/va3LJoiosoc) 
 - DFU over BLE (bluetooth low energy) OTA 
 - DFU using USB (Windows or Unix PC's)
 - Bootloader is self upgradable via either OTA or USB Serial
@@ -100,7 +101,7 @@ Click the “Start” button:
 4. Once the DFU process is complete, you should see that your new application (that was part of the DFU package) is now running on the DFU Target 
 
 Here is a video showing a wireless DFU for the TZDZ2 remote control:
-[![video](https://img.youtube.com/vi/E0GXf4Y68pM/hqdefault.jpg)](https://youtu.be/E0GXf4Y68pM)
+[![video](https://img.youtube.com/vi/va3LJoiosoc/hqdefault.jpg)](https://youtu.be/va3LJoiosoc)
 #### USB DFU
 The Nrfutil utility can be used to perform DFU over the USB serial port.
 Open a terminal and run nrfutil DFU --help as follows:

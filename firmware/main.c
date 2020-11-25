@@ -81,32 +81,6 @@
 #define BUTTON_DFU_WAIT APP_TIMER_TICKS(10000) //ms to wait for dfu mode to initiate
 APP_TIMER_DEF(m_timer_button_long_press_timeout);
 
-/*
-ret_code_t nrf_pwr_mgmt_init(void)
-{
-    NRF_LOG_INFO("Init");
-
-    PWR_MGMT_SLEEP_INIT();
-    PWR_MGMT_DEBUG_PINS_INIT();
-    PWR_MGMT_STANDBY_TIMEOUT_INIT();
-    PWR_MGMT_CPU_USAGE_MONITOR_INIT();
-
-    return PWR_MGMT_TIMER_CREATE();
-}
-*/
-void gpio_uninit(void)
-{
-    nrf_drv_gpiote_in_uninit(PLUS__PIN);
-    nrf_drv_gpiote_in_uninit(BUTTON_1);
-}
-static void lfclk_stop(void)
-{
-    // stop the low freq clock
-    nrf_clock_task_trigger(NRF_CLOCK_TASK_LFCLKSTOP);
-    while (nrf_clock_lf_is_running())
-    {
-    }
-}
 static void lfclk_start(void)
 {
     NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal;
@@ -135,7 +109,6 @@ static void timer_button_long_press_timeout_handler(void *p_context)
 {
     UNUSED_PARAMETER(p_context);
     //timed out so reboot into dfu mode
-    gpio_uninit(); //turn of button interrupt
     bsp_board_led_off(BSP_BOARD_LED_1);
     bsp_board_led_on(BSP_BOARD_LED_0);
     nrf_power_gpregret_set(BOOTLOADER_DFU_START); //set the dfu register
@@ -243,7 +216,6 @@ void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
         //turn off the button timer
         err_code = app_timer_stop(m_timer_button_long_press_timeout); //stop the long press timerf
         APP_ERROR_CHECK(err_code);
-        gpio_uninit();
         do_reset(); //reset and start over
     }
     break;
@@ -281,8 +253,8 @@ int main(void)
     //don't check for button press and immediately go into DFU
     if (nrf_power_gpregret_get() != BOOTLOADER_DFU_START)
     {
-        
-        gpio_init();   //set the gpio interrupt
+
+        gpio_init(); //set the gpio interrupt
         //check if bootloader button pressed
         if ((nrf_gpio_pin_read(PLUS__PIN) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
         {
@@ -301,16 +273,16 @@ int main(void)
             // if the button is released before timeout, button_released() is called and the board resets into DFU
         }
     }
-// else go into the bootloader
+    // else go into the bootloader
     // Protect MBR and bootloader code from being overwritten.
     ret_val = nrf_bootloader_flash_protect(0, MBR_SIZE, false);
     APP_ERROR_CHECK(ret_val);
     ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
     APP_ERROR_CHECK(ret_val);
-   
+
     ret_val = app_timer_init();
     APP_ERROR_CHECK(ret_val);
-  
+
     ret_val = nrf_bootloader_init(dfu_observer);
     APP_ERROR_CHECK(ret_val);
     //if the program is here there was either

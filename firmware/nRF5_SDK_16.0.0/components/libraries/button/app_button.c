@@ -339,7 +339,7 @@ uint32_t app_button_disable(void)
 bool app_button_is_pushed(uint8_t button_id)
 {
     ASSERT(button_id <= m_button_count);
-    ASSERT(mp_buttons != NULL);
+   ASSERT(mp_buttons != NULL);
 
     app_button_cfg_t const * p_btn = &mp_buttons[button_id];
     bool is_set = nrf_drv_gpiote_in_is_set(p_btn->pin_no);

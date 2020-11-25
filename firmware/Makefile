@@ -47,6 +47,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/memobj/nrf_memobj.c \
   $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
   $(SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
+  $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
   $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
   $(SDK_ROOT)/components/libraries/slip/slip.c \
@@ -180,6 +181,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crypto/backend/nrf_sw \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/components/libraries/bootloader/ble_dfu \
+  $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/components/softdevice/common \
   $(SDK_ROOT)/external/nano-pb \
   $(SDK_ROOT)/components/libraries/queue \

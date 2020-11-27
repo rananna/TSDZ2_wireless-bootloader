@@ -18,7 +18,7 @@ jobs:
       run: sudo apt install srecord
     
     - name: Install nrfutil
-      run: sudo -H pip3 install --upgrade pip && sudo -H pip3 install nrfutil
+      run: sudo -H pip3 install --upgrade pip && sudo -H pip3 install setuptools nrfutil
 
     - name: make
       run: cd ./firmware && make

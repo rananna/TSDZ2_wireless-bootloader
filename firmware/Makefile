@@ -322,7 +322,7 @@ LIB_FILES += -lc -lnosys -lm
 # Default target - first one defined
 default: nrf52840_xxaa bootloader_with_SD settings OTA
 bootloader_with_SD:
-	mergehex -m $(SOFT_DEVICE) $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  --output $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex
+	srec_cat $(SOFT_DEVICE) -intel $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  -intel -o $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex -intel -address-length=4
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
 settings:

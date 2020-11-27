@@ -107,8 +107,11 @@ static void do_reset(void)
 
 static void timer_button_long_press_timeout_handler(void *p_context)
 {
+    ret_code_t ret_val;
     UNUSED_PARAMETER(p_context);
     //timed out so reboot into dfu mode
+    ret_val = app_timer_stop(m_timer_button_long_press_timeout); //stop the long press timerf
+    APP_ERROR_CHECK(ret_val);
     bsp_board_led_off(BSP_BOARD_LED_1);
     bsp_board_led_on(BSP_BOARD_LED_0);
     nrf_power_gpregret_set(BOOTLOADER_DFU_START); //set the dfu register
@@ -256,7 +259,10 @@ int main(void)
 
         gpio_init(); //set the gpio interrupt
         //check if bootloader button pressed
-        if ((nrf_gpio_pin_read(PLUS__PIN) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
+        //Casainho - note that I added GPIO pin 9 as an additional check for TSDZ2 wireless. 
+        //the remote already uses the PLUS__KEY to enter DFU
+        // you could add an additional switch to pin 9 if the board pin is unreliable
+        if ((nrf_gpio_pin_read(9) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
         {
             lfclk_start(); //start the low freq clock
             timers_init(); //start the button timer
@@ -265,10 +271,10 @@ int main(void)
             while (true) //loop while the button is pressed
             {
                 app_sched_execute(); //execute the timer events
-                __WFE();             //low power mode
+                                     //  __WFE();             //low power mode
                 // Clear the internal event register.
-                __SEV();
-                __WFE();
+                //  __SEV();
+                //  __WFE();
             }
             // if the button is released before timeout, button_released() is called and the board resets into DFU
         }

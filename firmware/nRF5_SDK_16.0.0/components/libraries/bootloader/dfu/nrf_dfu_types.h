@@ -128,7 +128,8 @@ extern "C" {
 
 
 #ifndef NRF_DFU_APP_DATA_AREA_SIZE
-#define NRF_DFU_APP_DATA_AREA_SIZE (CODE_PAGE_SIZE * 3)
+#define NRF_DFU_APP_DATA_AREA_SIZE (CODE_PAGE_SIZE * 20) //needed to prevent data overwrite
+//see  :   https://devzone.nordicsemi.com/f/nordic-q-a/47901/fds_init-returns-fds_err_no_pages
 #endif
 
 STATIC_ASSERT((NRF_DFU_APP_DATA_AREA_SIZE % CODE_PAGE_SIZE) == 0, "NRF_DFU_APP_DATA_AREA_SIZE must be a multiple of the flash page size.");

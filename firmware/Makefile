@@ -47,6 +47,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/memobj/nrf_memobj.c \
   $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
   $(SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
+  $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
   $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
   $(SDK_ROOT)/components/libraries/slip/slip.c \
@@ -180,6 +181,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crypto/backend/nrf_sw \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(SDK_ROOT)/components/libraries/bootloader/ble_dfu \
+  $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/components/softdevice/common \
   $(SDK_ROOT)/external/nano-pb \
   $(SDK_ROOT)/components/libraries/queue \
@@ -320,7 +322,7 @@ LIB_FILES += -lc -lnosys -lm
 # Default target - first one defined
 default: nrf52840_xxaa bootloader_with_SD settings OTA
 bootloader_with_SD:
-	mergehex -m $(SOFT_DEVICE) $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  --output $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex
+	srec_cat $(SOFT_DEVICE) -intel $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  -intel -o $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex -intel -address-length=4
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
 settings:

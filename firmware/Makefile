@@ -14,7 +14,8 @@ BOARD_USE_SF_CLOCK := 1 #use the softdevice LFCLK
 
 
 ifeq ($(DEBUG), 1)
-SOFT_DEVICE = $(PROJ_DIR)/include/S340_and_TSDZ2_remote.hex
+#SOFT_DEVICE = $(PROJ_DIR)/include/S340_and_TSDZ2_remote.hex
+SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s340/hex/ANT_s340_nrf52840_6.1.1.hex
 else
 SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s340/hex/ANT_s340_nrf52840_6.1.1.hex
 endif

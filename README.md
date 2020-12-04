@@ -21,7 +21,7 @@ A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike rem
 This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
 ## Release Binary Hex file
 If you're just looking to flash the combined bootloader and softdevice, simply flash this hex file using OPENOCD from the launch json menu in vscode for the respective giyhub repository source code for the TSDZ2 remote and controller. 
-> The firmware HEX file to flash is this one: [ebike_wireless_remote_with_sd-v.1.0.hex](firmware/release/TSDZ2_bootloader_with_sd_v1.0.hex)
+> The firmware HEX file to flash is in the github release.
 ## Security Encryption
 Note that the TSDZ2 bootloader source code is distributed with a public and private keypair for application signing. (private.key & public.key). This will permit anyone who has access to the private key to be able to flash and overwrite any application you have while in OTA DFU mode. If you want to protect your eBike firmware fron unauthorized access, build your own binary with a new generated keypair.
 ### Generating new keys
@@ -88,8 +88,8 @@ Explanation:
 --application-version: By default the start number for the application version is 0.  
 --sd-req: For the TSDZ2, we need Softdevice S340 v6.1.1. The number to use for this softdevice version is 0xB9. 
 --application : Tells nrfutil that you going to update the application and an application image is provided.
-### Step 2. Performing DFU (Bluetooth or USB)
-#### BLE DFU
+### Step 2. Performing DFU (Bluetooth)
+#### Bluetooth (BLE) DFU
 Now you have your DFU .zip file containing the application update and the bootloader and bootloader settings installed on the board, it's time to actually do wireless DFU.
 1.  Start DFU mode Verify the bootloader starts advertising as "TSDZ2_DFU".You’ll need to make sure the package you created in step #7 is accessible on the mobile phone you’re using (if you’re using nRF Connect for Mobile). Now, connect to the DFU target:
 
@@ -102,15 +102,6 @@ Click the “Start” button:
 
 Here is a video showing a wireless DFU for the TZDZ2 remote control:
 [![video](https://img.youtube.com/vi/va3LJoiosoc/hqdefault.jpg)](https://youtu.be/va3LJoiosoc)
-#### USB DFU
-The Nrfutil utility can be used to perform DFU over the USB serial port.
-Open a terminal and run nrfutil DFU --help as follows:
-
-![](./Images/nrfutil.png)
-compose the command to update the firmware ie:
-nrfutil dfu usb-serial -pkg app_dfu_package.zip -p /tty/ttyACM0
-A video explaining this can be found below:
-[![video](https://img.youtube.com/vi/CRthZeFhfZY/hqdefault.jpg)](https://youtu.be/CRthZeFhfZY)
 ## Appendix - Advanced features
 ### 1. Secure Boot Validation
 There is a boot validation performed at the booting phase of the bootloader involving for the application, softdevice and the bootloader.
@@ -121,12 +112,12 @@ In short, a normal secure booting sequence starts with the MBR booting first, it
 - VALIDATE_ECDSA_P256_SHA256. 
 This also applies for bootloader setting. You can generate the bootloader setting with the same option for boot validating the application and/or the softdevice, instead of just CRC validation for application as before. 
 ### 2. Button based DFU
-If, for any reason, you want to force the firmware into DFU mode, this can bee done using physical buttons. To enter DFU bootloader mode on the remote control, press any button on the keypad for 10 seconds or longer.
-To enter DFU mode on the wireless TSDZ2 controller, press the button on the board. 
+If, for any reason, you want to force the firmware into DFU mode, this can also be done using the physical button on the board. 
+To enter DFU mode press the button on the board during board reset. This can be accomplished by a power cycle. 
 ### 3. Firmware memory map
 See this video for an explanation of the memory map for the nRF52840 board:
 [![video](https://img.youtube.com/vi/MZ6Qz32tY0c/hqdefault.jpg)](https://youtu.be/MZ6Qz32tY0c)
-### 4. Buttonless DFU DFU details
-a BLE packet is used to switch to DFU mode without physical contact (buttonless DFU).
-The way it works is pretty simple, to switch, we write to the retention register GPREGRET a flag (BOOTLOADER_DFU_START = 0xB1) and then we do a soft reset. This is done in bootloader_start() in ble_dfu.c file.
-Since the retention register keeps its value after the reset, the bootloader will check this value when it booting up after the reset and then can enter DFU mode instead of starting the normal application. This is the same as when we hold the Bootloader button and trigger a reset.
+### 4. Bluetooth DFU DFU details
+a BLE packet is used to switch to DFU mode without physical contact
+The way it works is pretty simple, to switch, we write to the retention register GPREGRET a flag and then we do a soft reset. 
+Since the retention register keeps its value after the reset, the bootloader will check this value when it booting up after the reset and then can enter DFU mode instead of starting the normal application. This is the same behavior as when we hold the board button and trigger a reset.

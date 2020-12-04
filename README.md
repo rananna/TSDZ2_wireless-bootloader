@@ -1,47 +1,55 @@
 # TSDZ2 Bluetooth Bootloader
-A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike remote control and motor controller 
-## Bootloader Features
- Based on the 'Secure Bootloader' example provided in the Nordic nRF52 development kit. A video showing a DFU process can be seen here:
-[![video](https://img.youtube.com/vi/va3LJoiosoc/hqdefault.jpg)](https://youtu.be/va3LJoiosoc) 
+**A secure wireless bluetooth and USB based DFU bootloader for the [EBike Handlebar Remote Controller](https://github.com/OpenSource-EBike-firmware/ebike_wireless_remote) and [TSDZ2 Wireless](https://github.com/OpenSource-EBike-firmware/TSDZ2_wireless)**
+
+![Build](https://github.com/OpenSource-EBike-firmware/TSDZ2_wireless-bootloader/workflows/Build/badge.svg?branch=main)
+[![GitHub license](https://img.shields.io/github/license/OpenSource-EBike-firmware/TSDZ2_wireless-bootloader)](https://github.com/OpenSource-EBike-firmware/TSDZ2_wireless-bootloader/blob/main/LICENSE)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/OpenSource-EBike-firmware/TSDZ2_wireless-bootloader)
+
+
+## Features
 - DFU over BLE (bluetooth low energy) OTA 
 - DFU using USB (Windows or Unix PC's)
 - Bootloader is self upgradable via either OTA or USB Serial
-- Bootloader will time out and load a valid application if no DFU is initiated 
-- Bootloader will sense gpio button pins on start up.
-  If button is pressed then an adjustable timer starts, when timed out enters DFU mode. 
-  If button is released before timeout, the bootloader will start the installed application immediately.
+- Bootloader will time out and load a valid application if no DFU is initiated
+- DFU mode will be initiated if bootloader cannot find a valid application to load
+- Bootloader will sense GPIO button pins on start up
+  * If button is pressed then an adjustable timer starts, when timed out enters DFU mode
+  * If button is released before timeout, the bootloader will start the installed application immediately
 - Optionally, the firmware upgrade can be downgradable (`NRF_DFU_BL_ALLOW_DOWNGRADE` Makefile option)
 
-## DFU mode will be initiated by any one of the following actions:
-- Bootloader cannot find a valid application to load
-- Bluetooth access in DFU mode
--  pressing the DFU button on the board or the wireless remote (see "Bootloader Features" above)
-
 ## The Garmin S340 softdevice
-This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
+This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board.
+
 ## Release Binary Hex file
-If you're just looking to flash the combined bootloader and softdevice, simply flash this hex file using OPENOCD from the launch json menu in vscode for the respective giyhub repository source code for the TSDZ2 remote and controller. 
+If you're just looking to flash the combined bootloader and softdevice, simply flash this hex file using OPENOCD from the launch json menu in vscode for the respective repository source code for the TSDZ2 remote and controller. 
 > The firmware HEX file to flash is in the github release.
+
 ## Security Encryption
 Note that the TSDZ2 bootloader source code is distributed with a public and private keypair for application signing. (private.key & public.key). This will permit anyone who has access to the private key to be able to flash and overwrite any application you have while in OTA DFU mode. If you want to protect your eBike firmware fron unauthorized access, build your own binary with a new generated keypair.
+
 ### Generating new keys
 You will need to generate a pair of Public and Private Keys to encrypt the signature and sign the DFU image using ECDSA_P256_SHA256.
-Nordic provides the nRFutil tool to generate these keys. nRFutil.exe can be downloaded from github [here](https://github.com/NordicSemiconductor/pc-nrfutil), the user guide is [here](https://www.nordicsemi.com/-/media/DocLib/Other/User_Guides/nrfutilv16pdf.pdf).
-Or acquired from python using pip3 install nrfutil. To check for update, call pip3 install nrfutil --upgrade (or use python -m pip install nrfutil)
+
+Nordic provides the nRFutil tool to generate these keys.
+* For Ubuntu: `sudo pip3 install nrfutil`
+* For Windows: [download nRFutil.exe](https://github.com/NordicSemiconductor/pc-nrfutil)
+
+_Check [Nordic's User Guide](https://www.nordicsemi.com/-/media/DocLib/Other/User_Guides/nrfutilv16pdf.pdf) if in doubts._
  
-A1. Generate your own private key. Type this command line:
-nrfutil.exe keys generate private.key
-private.key file will be generated. You will keep this key secret
-A2. Generate your public key based on your private key.
-nrfutil keys display --key pk --format code private.key --out_file public_key.c
-After you have the public_key.c file we can build the bootloader using the make file.
+1. Generate your own private key and keep it secret: `nrfutil keys generate private.key`
+2. Generate your public key based on your private key: `nrfutil keys display --key pk --format code private.key --out_file public_key.c`
+
+After you have the `public_key.c` file you can build the Bootloader.
+
 ## Bootloader build options
 Hex for the combined bootloaded and S340 softdevice flashes are output to the `_build` directory after compilation and linking success.
 `NRF_DFU_BL_ALLOW_DOWNGRADE`  will allow the firmware to accept a downgraded version if desired
  `NRF_DFU_BL_ACCEPT_SAME_VERSION`).will allow the firmware to acccept the same version
  `BOARD_USE_SF_CLOCK` is defined to utilize the onboard Soft Device LFCLK.
+
 ### TSDZ2 remote control and Controller builds
 for both firmwares, the respective MAKE files will automatically put the combined hex file and the signed firmware upgrade zip files in the _upgrade folder after the build process is completed.
+
 ## Boot-up Sequence
 Based on the settings stored in the bootloader settings page, the bootloader determines: whether the application exists, and the location of it. The secure bootloader performs a signature verification of the application before booting into it.
 
@@ -77,6 +85,7 @@ The DFU process can be run by using one of the following Nordic tools. Each of t
 * nRF Connect for desktop
 * nRF Connect for mobile
 Two devices are involved in the DFU process: the DFU controller which transfers the DFU package, and the DFU target which receives and applies the DFU package. (the TSDZ2 remote or controller)
+
 ### Step 1. Generate DFU .zip packet
 A DFU .zip packet is required for the DFU master to send new image(s) to the TSDZ2 remote control or controller boards.(the target) The .zip file contains the image hex file(s) we want to update and the init packet, including the signature of the packet. 
 Prepare the TSDZ2 application zip file. Build the TSDZ2 remote control and/or the TSDZ2 controller and find the .zip file inside the _build folder. It's named TSDZ2_combined_with_sd. 
@@ -88,9 +97,11 @@ Explanation:
 --application-version: By default the start number for the application version is 0.  
 --sd-req: For the TSDZ2, we need Softdevice S340 v6.1.1. The number to use for this softdevice version is 0xB9. 
 --application : Tells nrfutil that you going to update the application and an application image is provided.
+
 ### Step 2. Performing DFU (Bluetooth)
 #### Bluetooth (BLE) DFU
 Now you have your DFU .zip file containing the application update and the bootloader and bootloader settings installed on the board, it's time to actually do wireless DFU.
+
 1.  Start DFU mode Verify the bootloader starts advertising as "TSDZ2_DFU".You’ll need to make sure the package you created in step #7 is accessible on the mobile phone you’re using (if you’re using nRF Connect for Mobile). Now, connect to the DFU target:
 
 2. Copy the DFU .zip file you just generated to the phone or to the folder on PC of your choice.
@@ -102,6 +113,7 @@ Click the “Start” button:
 
 Here is a video showing a wireless DFU for the TZDZ2 remote control:
 [![video](https://img.youtube.com/vi/va3LJoiosoc/hqdefault.jpg)](https://youtu.be/va3LJoiosoc)
+
 ## Appendix - Advanced features
 ### 1. Secure Boot Validation
 There is a boot validation performed at the booting phase of the bootloader involving for the application, softdevice and the bootloader.
@@ -110,13 +122,16 @@ In short, a normal secure booting sequence starts with the MBR booting first, it
 - VALIDATE_GENERATED_CRC
 - VALIDATE_GENERATED_SHA256
 - VALIDATE_ECDSA_P256_SHA256. 
-This also applies for bootloader setting. You can generate the bootloader setting with the same option for boot validating the application and/or the softdevice, instead of just CRC validation for application as before. 
+This also applies for bootloader setting. You can generate the bootloader setting with the same option for boot validating the application and/or the softdevice, instead of just CRC validation for application as before.
+
 ### 2. Button based DFU
 If, for any reason, you want to force the firmware into DFU mode, this can also be done using the physical button on the board. 
-To enter DFU mode press the button on the board during board reset. This can be accomplished by a power cycle. 
+To enter DFU mode press the button on the board during board reset. This can be accomplished by a power cycle.
+
 ### 3. Firmware memory map
 See this video for an explanation of the memory map for the nRF52840 board:
 [![video](https://img.youtube.com/vi/MZ6Qz32tY0c/hqdefault.jpg)](https://youtu.be/MZ6Qz32tY0c)
+
 ### 4. Bluetooth DFU DFU details
 a BLE packet is used to switch to DFU mode without physical contact
 The way it works is pretty simple, to switch, we write to the retention register GPREGRET a flag and then we do a soft reset. 

@@ -21,7 +21,7 @@ A secure wireless bluetooth and USB based DFU bootloader for the TSDZ2 ebike rem
 This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
 ## Release Binary Hex file
 If you're just looking to flash the combined bootloader and softdevice, simply flash this hex file using OPENOCD from the launch json menu in vscode for the respective giyhub repository source code for the TSDZ2 remote and controller. 
-> The firmware HEX file to flash is this one: [ebike_wireless_remote_with_sd_v.1.0.hex](firmware/release/TSDZ2_bootloader_with_sd_v1.0.hex)
+> The firmware HEX file to flash is in the github release.
 ## Security Encryption
 Note that the TSDZ2 bootloader source code is distributed with a public and private keypair for application signing. (private.key & public.key). This will permit anyone who has access to the private key to be able to flash and overwrite any application you have while in OTA DFU mode. If you want to protect your eBike firmware fron unauthorized access, build your own binary with a new generated keypair.
 ### Generating new keys

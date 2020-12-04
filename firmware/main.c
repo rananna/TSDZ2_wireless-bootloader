@@ -149,6 +149,7 @@ static void on_error(void)
     do_reset();
 }
 
+/*
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_file_name)
 {
 
@@ -160,7 +161,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
     on_error();
 }
-
+*/
 void app_error_handler_bare(uint32_t error_code)
 {
 
@@ -240,10 +241,10 @@ static void gpio_init(void)
 
     err_code = nrf_drv_gpiote_in_init(PLUS__PIN, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(PLUS__PIN, true);
+    APP_ERROR_CHECK(err_code);
 
     err_code = nrf_drv_gpiote_in_init(BUTTON_1, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(BUTTON_1, true);
-
     APP_ERROR_CHECK(err_code);
 }
 
@@ -258,12 +259,12 @@ int main(void)
     {
 
         gpio_init(); //set the gpio interrupt
-        //check if bootloader button pressed
-        //Casainho - note that I added GPIO pin 9 as an additional check for TSDZ2 wireless. 
-        //the remote already uses the PLUS__KEY to enter DFU
-        // you could add an additional switch to pin 9 if the board pin is unreliable
-       // ie: if ((nrf_gpio_pin_read(9) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
-       if (nrf_gpio_pin_read(BUTTON_1) == 0) // button pressed
+                     //check if bootloader button pressed
+                     //Casainho - note that I added GPIO pin 9 as an additional check for TSDZ2 wireless.
+                     //the remote already uses the PLUS__KEY to enter DFU
+                     // you could add an additional switch to pin 9 if the board pin is unreliable
+        // ie: if ((nrf_gpio_pin_read(9) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
+        if (nrf_gpio_pin_read(BUTTON_1) == 0) // button pressed
         {
             lfclk_start(); //start the low freq clock
             timers_init(); //start the button timer

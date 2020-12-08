@@ -4,12 +4,18 @@ OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ./nRF5_SDK_16.0.0
 PROJ_DIR := .
+# project build flags
+BOOTLOADER_VERSION:= 10 # integer 10's digit MAJOR VERSION , 1's digit MINOR VERSION ie: 10 = Version 1.0
 DEBUG ?= 0
+SD_REQ := 0xB9 #s340 sd is required
+NRF_DFU_BL_ALLOW_DOWNGRADE := 1 #allow the bootloader to be downgraded
+BOARD_USE_SF_CLOCK := 1 #use the softdevice LFCLK
 
 
 
 ifeq ($(DEBUG), 1)
-SOFT_DEVICE = $(PROJ_DIR)/include/S340_and_TSDZ2_remote.hex
+#SOFT_DEVICE = $(PROJ_DIR)/include/S340_and_TSDZ2_remote.hex
+SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s340/hex/ANT_s340_nrf52840_6.1.1.hex
 else
 SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s340/hex/ANT_s340_nrf52840_6.1.1.hex
 endif
@@ -76,7 +82,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_hash.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_shared.c \
-  $(PROJ_DIR)/public_key.c \
+  $(PROJ_DIR)/include/public_key.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_svci.c \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_svci_handler.c \
@@ -320,16 +326,16 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: nrf52840_xxaa bootloader_with_SD settings OTA
+default: nrf52840_xxaa bootloader_with_SD OTA
+
+#generate unsigned merged bootloader hex
 bootloader_with_SD:
-	mergehex -m $(SOFT_DEVICE) $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  --output $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex
+	srec_cat $(SOFT_DEVICE) -intel $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex  -intel -o $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex -intel -address-length=4
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
-settings:
-	$(SREC_PATH)nrfutil settings generate --family NRF52840 --application $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex --application-version 1 --bootloader-version 1 --bl-settings-version 2 $(OUTPUT_DIRECTORY)/bl_settings.hex
-
+#generate signed bootloader distribution zip file
 OTA:
-	$(SREC_PATH)nrfutil pkg generate --hw-version 52 --sd-req 0x8C --application-version 4 --application $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_with_sd.hex --key-file private.key $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_ota_update.zip
+	$(SREC_PATH)nrfutil pkg generate --hw-version 52 --sd-req $(SD_REQ) --bootloader-version $(BOOTLOADER_VERSION) --bootloader $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --softdevice $(SOFT_DEVICE) --key-file $(PROJ_DIR)/include/private.key $(OUTPUT_DIRECTORY)/TSDZ2_bootloader_ota_update.zip
 
 include $(TEMPLATE_PATH)/Makefile.common
 

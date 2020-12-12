@@ -27,6 +27,8 @@ Step 2. Performing DFU (Bluetooth)
 ---------
 Now you have your DFU .zip file containing the application update and the bootloader and bootloader settings installed on the board, it's time to actually do wireless DFU.
 1.  Start DFU mode
+     This can be done by entering 0x99 as a configuration variable in either the remote control or wireless controller firmware using bluetooth control.
+     You can also initiate DFU mode by holding the board button down for several seconds during a reset. (ie: when power cycling, or pressing the reset button on the board)
    
      Verify the bootloader starts advertising as "TSDZ2_DFU".You’ll need to make sure the package you created in step #7 is accessible on the mobile phone you’re using (if you’re using nRF Connect for Mobile). Now, connect to the DFU target:
 

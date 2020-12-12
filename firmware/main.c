@@ -64,7 +64,7 @@
 #include "nrf_drv_clock.h"
 #include "nrf_delay.h"
 #include "nrf_power.h"
-#include "custom_board.h"
+//#include "custom_board.h"
 #include "pins.h"
 #include "nrf_gpio.h"
 #include "nrf_drv_gpiote.h"

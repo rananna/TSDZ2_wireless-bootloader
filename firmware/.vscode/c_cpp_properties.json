@@ -11,8 +11,7 @@
             "defines": [
                 "APP_TIMER_V2",
                 "APP_TIMER_V2_RTC1_ENABLED",
-                "BOARD_CUSTOM",
-                "NRF52840_MDK_USB_DONGLE",
+                "BOARD_PCA10059",
                 "CONFIG_GPIO_AS_PINRESET",
                 "FLOAT_ABI_HARD",
                 "NRF52840_XXAA",

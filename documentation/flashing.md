@@ -1,4 +1,4 @@
-# Flashing the Bootloader
+# Building the Bootloader
 ## The Garmin S340 softdevice
 This bootloader (as well as the TSDZ2 remote control and controller firmwares) require the Garmin S340 softdevice to gain access to the bluetooth stack. Because of this, the S340 softdevice hex file needs to be flashed along with the bootloader hex file. The MAKE file will automatically combine these two hex files and flash the resulting combined file to the board. 
 ## Release Binary Hex file

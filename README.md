@@ -7,24 +7,33 @@ as well as a [wireless remote control](https://github.com/OpenSource-EBike-firmw
 
 -------
 ## Overview
-This project implements a secure wireless bluetooth DFU bootloader for the TSDZ2 ebike remote control and motor controller 
+This project implements a secure wireless bluetooth DFU bootloader for the TSDZ2 ebike remote control and motor controller. Once loaded on the Nordic Nrf52840 dongle, the firmware for both the remote and the wireless controller can be installed using bluetooth.
+
+
+![dongle](./documentation/nordic.jpg)
 
 ----
-[Operation](documentation/operation.md)
+[Installing the Bootloader on the Nordic USB Dongle](documentation/getting_started.md)
+-------
+-------
+[Loading New Firmware using the bootloader (the DFU Process)](documentation/dfu.md)
 -----------
 ------------
-[The DFU Process](documentation/dfu.md)
+
+[Technical Description](documentation/operation.md)
 -----------
 ------------
 [Security Encryption](documentation/configuration.md)
 ---------
 ---------
-[Flashing](documentation/flashing.md)
+[Building the Bootloader](documentation/flashing.md)
 ------
 ------
-[Firmware Memory Map](documentation/memory_map.md)
+[Bootloader Memory Map](documentation/memory_map.md)
 -------
 -------
-
+[Important Note for Developers ](documentation/voltage_issue.md)
+-------
+-------
 ## Questions/Comments?
 Please post on [this forum message](https://endless-sphere.com/forums/viewtopic.php?f=28&t=106346).

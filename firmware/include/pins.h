@@ -20,7 +20,7 @@ typedef enum {
     MINUS__PIN  = 6,
     ENTER__PIN = 7,
     STANDBY__PIN = 8,
-    BOOTLOADER__PIN= 18,
+    BOOTLOADER__PIN = 18,
     BUTTON_PIN_ELEMENTS = 5 // must be updated when added or removed an element
 } button_pins_t;
 #endif

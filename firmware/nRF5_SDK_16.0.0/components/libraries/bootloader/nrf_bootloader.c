@@ -59,6 +59,8 @@
 #include "app_scheduler.h"
 #include "nrf_dfu_validation.h"
 
+extern bool g_start_bootloader;
+
 static nrf_dfu_observer_t m_user_observer; //<! Observer callback set by the user.
 static volatile bool m_flash_write_done;
 
@@ -477,7 +479,7 @@ ret_code_t nrf_bootloader_init(nrf_dfu_observer_t observer)
             return NRF_ERROR_INTERNAL;
     }
 
-    if (dfu_enter)
+    if (dfu_enter || g_start_bootloader)
     {
         nrf_bootloader_wdt_init();
         scheduler_init();

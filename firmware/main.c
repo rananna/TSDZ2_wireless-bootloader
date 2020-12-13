@@ -152,6 +152,23 @@ void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
   }
 }
 
+/* This function is specifically to avoid the follwing issue:
+[173] GPIO: Writes to LATCH register take several CPU cycles to take effect */
+static __attribute__((optimize("O0"))) bool readPinState(uint32_t pin)
+{
+  nrf_gpio_cfg_input(pin, GPIO_PIN_CNF_PULL_Pullup);
+
+  static volatile uint32_t temp;
+  temp = NRF_P0->IN;
+  temp = NRF_P0->IN;
+  temp = NRF_P0->IN;
+
+  if (nrf_gpio_pin_read(pin))
+    return true;
+  else
+    return false;
+}
+
 static bool gpio_init(void)
 {
   ret_code_t err_code;
@@ -159,13 +176,12 @@ static bool gpio_init(void)
 
   err_code = nrf_drv_gpiote_init();
   APP_ERROR_CHECK(err_code);
-
+    
   nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
   in_config.pull = NRF_GPIO_PIN_PULLUP;
 
   // enable button release interrupt only if the pin is pressed
-  nrf_gpio_cfg_input(PLUS__PIN, GPIO_PIN_CNF_PULL_Pullup);
-  if (nrf_gpio_pin_read(PLUS__PIN) == 0)
+  if (readPinState(PLUS__PIN) == 0)
   {
     err_code = nrf_drv_gpiote_in_init(PLUS__PIN, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(PLUS__PIN, true);
@@ -175,8 +191,7 @@ static bool gpio_init(void)
   }
 
   // enable button release interrupt only if the pin is pressed
-  nrf_gpio_cfg_input(BUTTON_1, GPIO_PIN_CNF_PULL_Pullup);
-  if (nrf_gpio_pin_read(BUTTON_1) == 0)
+  if (readPinState(BUTTON_1) == 0)
   {
     err_code = nrf_drv_gpiote_in_init(BUTTON_1, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(BUTTON_1, true);

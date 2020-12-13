@@ -221,12 +221,12 @@ LIB_FILES += \
   $(SDK_ROOT)/external/nrf_cc310_bl/lib/cortex-m4/hard-float/libnrf_cc310_bl_0.9.12.a \
 
 ifeq ($(DEBUG), 1)
-OPT = -Og -g3
+OPT = -O0 -g3
 else
 OPT = -O3 -g3
 endif
 ifeq ($(DEBUG), 1)
-OPT = -Og -g3
+OPT = -O0 -g3
 else
 OPT += -flto
 endif

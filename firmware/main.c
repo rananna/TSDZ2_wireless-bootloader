@@ -73,7 +73,7 @@ static void leds_init(void)
     APP_ERROR_CHECK(ret_val);
   }
   // turn on the led to indicate we are in the bootloader
-  bsp_board_led_on(BSP_BOARD_LED_1); //indicate that the bootloader is active
+ // bsp_board_led_on(BSP_BOARD_LED_1); //indicate that the bootloader is active
 }
 
 static void on_error(void)
@@ -106,7 +106,7 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
     case NRF_DFU_EVT_DFU_FAILED:
     case NRF_DFU_EVT_DFU_ABORTED:
     case NRF_DFU_EVT_DFU_INITIALIZED:
-        if (LEDS_NUMBER > 0)
+        /*if (LEDS_NUMBER > 0)
         {
             bsp_board_led_on(BSP_BOARD_LED_0);
             if (LEDS_NUMBER <= 2)
@@ -119,15 +119,17 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
                 bsp_board_led_off(BSP_BOARD_LED_2);
             }
         }
+        */
         break;
     case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
-        if (LEDS_NUMBER > 2)
+       /* if (LEDS_NUMBER > 2)
         {
             bsp_board_led_off(BSP_BOARD_LED_0);
             bsp_board_led_off(BSP_BOARD_LED_1);
             bsp_board_led_on(BSP_BOARD_LED_2);
             bsp_indication_set(BSP_INDICATE_ADVERTISING_DIRECTED);
         }
+        */
         break;
     case NRF_DFU_EVT_DFU_STARTED:
         break;
@@ -142,8 +144,8 @@ void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
   {
   case NRF_GPIOTE_POLARITY_LOTOHI:
   {
-    bsp_board_led_off(BSP_BOARD_LED_1);
-    bsp_board_led_off(BSP_BOARD_LED_0);
+  //  bsp_board_led_off(BSP_BOARD_LED_1);
+   // bsp_board_led_off(BSP_BOARD_LED_0);
   }
   break;
   case NRF_GPIOTE_POLARITY_HITOLO:
@@ -321,7 +323,7 @@ int main(void)
   //-no DFU requested in the bootloader
   // or the DFU module detected no ongoing DFU operation and found a valid main application.
   //so, load the installed application
-  bsp_board_led_off(BSP_BOARD_LED_1);
-  bsp_board_led_off(BSP_BOARD_LED_0);
+  //bsp_board_led_off(BSP_BOARD_LED_1);
+ // bsp_board_led_off(BSP_BOARD_LED_0);
   nrf_bootloader_app_start();
 }

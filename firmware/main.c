@@ -135,6 +135,7 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
         break;
     }
 }
+
 void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
   switch (action)
@@ -154,7 +155,7 @@ void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 
 /* This function is specifically to avoid the follwing issue:
 [173] GPIO: Writes to LATCH register take several CPU cycles to take effect */
-static __attribute__((optimize("O0"))) bool readPinState(uint32_t pin)
+static __attribute__((optimize("O0"))) bool read_pin(uint32_t pin)
 {
   nrf_gpio_cfg_input(pin, GPIO_PIN_CNF_PULL_Pullup);
 
@@ -169,6 +170,25 @@ static __attribute__((optimize("O0"))) bool readPinState(uint32_t pin)
     return false;
 }
 
+static bool check_pin_and_enable_interrupt(uint32_t pin)
+{
+  // enable button release interrupt only if the pin is pressed
+  if (read_pin(pin) == 0)
+  {
+    ret_code_t err_code;
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
+    in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+    err_code = nrf_drv_gpiote_in_init(pin, &in_config, button_released);
+    nrf_drv_gpiote_in_event_enable(pin, true);
+    APP_ERROR_CHECK(err_code);
+
+    return true;
+  }
+
+  return false;
+}
+
 static bool gpio_init(void)
 {
   ret_code_t err_code;
@@ -177,28 +197,11 @@ static bool gpio_init(void)
   err_code = nrf_drv_gpiote_init();
   APP_ERROR_CHECK(err_code);
     
-  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
-  in_config.pull = NRF_GPIO_PIN_PULLUP;
-
-  // enable button release interrupt only if the pin is pressed
-  if (readPinState(PLUS__PIN) == 0)
-  {
-    err_code = nrf_drv_gpiote_in_init(PLUS__PIN, &in_config, button_released);
-    nrf_drv_gpiote_in_event_enable(PLUS__PIN, true);
-    APP_ERROR_CHECK(err_code);
-
-    bootloader_pin_pressed = true;
-  }
-
-  // enable button release interrupt only if the pin is pressed
-  if (readPinState(BUTTON_1) == 0)
-  {
-    err_code = nrf_drv_gpiote_in_init(BUTTON_1, &in_config, button_released);
-    nrf_drv_gpiote_in_event_enable(BUTTON_1, true);
-    APP_ERROR_CHECK(err_code);
-
-    bootloader_pin_pressed = true;
-  }
+  bootloader_pin_pressed = check_pin_and_enable_interrupt(PLUS__PIN);
+  bootloader_pin_pressed |= check_pin_and_enable_interrupt(MINUS__PIN);
+  bootloader_pin_pressed |= check_pin_and_enable_interrupt(ENTER__PIN);
+  bootloader_pin_pressed |= check_pin_and_enable_interrupt(STANDBY__PIN);
+  bootloader_pin_pressed |= check_pin_and_enable_interrupt(BUTTON_1);
 
   return bootloader_pin_pressed;
 }
@@ -207,7 +210,14 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
 {
   if (int_type == NRF_DRV_RTC_INT_COMPARE0)
   {
-    g_start_bootloader = true;
+    if (((read_pin(PLUS__PIN) == 0) &&
+        (read_pin(MINUS__PIN) == 0) &&
+        (read_pin(ENTER__PIN) == 0) &&
+        (read_pin(STANDBY__PIN) == 0)) ||
+        (read_pin(BUTTON_1) == 0))
+    {
+      g_start_bootloader = true;
+    }
   }
 }
 
@@ -278,6 +288,18 @@ int main(void)
 
       // let's increase the clock frequency for regular values to save power
       lfclk_config();
+
+      // disable buttons
+      nrf_drv_gpiote_in_uninit(PLUS__PIN);
+      nrf_drv_gpiote_in_event_disable(PLUS__PIN);
+      nrf_drv_gpiote_in_uninit(MINUS__PIN);
+      nrf_drv_gpiote_in_event_disable(MINUS__PIN);
+      nrf_drv_gpiote_in_uninit(ENTER__PIN);
+      nrf_drv_gpiote_in_event_disable(ENTER__PIN);
+      nrf_drv_gpiote_in_uninit(STANDBY__PIN);
+      nrf_drv_gpiote_in_event_disable(STANDBY__PIN);
+      nrf_drv_gpiote_in_uninit(BUTTON_1);
+      nrf_drv_gpiote_in_event_disable(BUTTON_1);
 
       // RTC uninit because it will be used by the softdevice
       rtc_uninit();

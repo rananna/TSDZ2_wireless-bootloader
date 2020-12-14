@@ -5,45 +5,6 @@
  *
  * Released under the GPL License, Version 3
  */
-/*
- * Copyright (c) 2016 - 2019, Nordic Semiconductor ASA
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Nordic
- *    Semiconductor ASA integrated circuit in a product or a software update for
- *    such product, must reproduce the above copyright notice, this list of
- *    conditions and the following disclaimer in the documentation and/or other
- *    materials provided with the distribution.
- *
- * 3. Neither the name of Nordic Semiconductor ASA nor the names of its
- *    contributors may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Nordic Semiconductor ASA integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
 
 #include <stdint.h>
 #include "boards.h"
@@ -69,103 +30,70 @@
 #include "nrf_gpio.h"
 #include "nrf_drv_gpiote.h"
 #include "nrf_sdh.h"
-//#include "peripheral.h" // header for the functions here
 #include "boards.h"
 #include "app_button.h"
 #include "app_scheduler.h"
-//#include "nrf_pwr_mgmt.h"
-#define SCHED_MAX_EVENT_DATA_SIZE MAX(APP_TIMER_SCHED_EVENT_DATA_SIZE, 0)
-#define SCHED_QUEUE_SIZE 20
+#include "nrf_drv_rtc.h"
 
-#define BUTTON_DETECTION_DELAY APP_TIMER_TICKS(50)
-#define BUTTON_DFU_WAIT APP_TIMER_TICKS(10000) //ms to wait for dfu mode to initiate
-APP_TIMER_DEF(m_timer_button_long_press_timeout);
+const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(0);
+
+bool g_start_bootloader = false;
 
 static void lfclk_start(void)
 {
-    NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal;
-    NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
-    NRF_CLOCK->TASKS_LFCLKSTART = 1;
+  NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Synth;
+  NRF_CLOCK->EVENTS_LFCLKSTARTED = 0;
+  NRF_CLOCK->TASKS_LFCLKSTART = 1;
 
-    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0)
-    {
-    }
+  while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0)
+  {
+  }
 }
 static void do_reset(void)
 {
-    NRF_LOG_FINAL_FLUSH();
+  NRF_LOG_FINAL_FLUSH();
 
 #if NRF_MODULE_ENABLED(NRF_LOG_BACKEND_RTT)
-    // To allow the buffer to be flushed by the host.
-    nrf_delay_ms(500);
+  // To allow the buffer to be flushed by the host.
+  nrf_delay_ms(500);
 #endif
 
-    nrf_delay_ms(NRF_BL_RESET_DELAY_MS);
+  nrf_delay_ms(NRF_BL_RESET_DELAY_MS);
 
-    NVIC_SystemReset();
+  NVIC_SystemReset();
 }
 
-static void timer_button_long_press_timeout_handler(void *p_context)
-{
-    ret_code_t ret_val;
-    UNUSED_PARAMETER(p_context);
-    //timed out so reboot into dfu mode
-    ret_val = app_timer_stop(m_timer_button_long_press_timeout); //stop the long press timerf
-    APP_ERROR_CHECK(ret_val);
-    bsp_board_led_off(BSP_BOARD_LED_1);
-    bsp_board_led_on(BSP_BOARD_LED_0);
-    nrf_power_gpregret_set(BOOTLOADER_DFU_START); //set the dfu register
-    nrf_delay_ms(1000);                           //wait for write to complete
-    do_reset();
-}
 static void leds_init(void)
 {
-    ret_code_t ret_val;
-    if (LEDS_NUMBER > 0)
-    {
-
-        bsp_board_init(BSP_INIT_LEDS);
-        ret_val = bsp_init(BSP_INIT_LEDS, NULL);
-        APP_ERROR_CHECK(ret_val);
-    }
-    // turn on the led to indicate we are in the bootloader
-    bsp_board_led_on(BSP_BOARD_LED_1); //indicate that the bootloader is active
-}
-static void timers_init(void)
-{
-    ret_code_t err_code = app_timer_init();
-    APP_ERROR_CHECK(err_code);
-    err_code = app_timer_create(&m_timer_button_long_press_timeout,
-                                APP_TIMER_MODE_SINGLE_SHOT,
-                                timer_button_long_press_timeout_handler);
-    APP_ERROR_CHECK(err_code);
-    //start the button timer
-    err_code = app_timer_start(m_timer_button_long_press_timeout, BUTTON_DFU_WAIT, NULL); //start the long press timerf
-    APP_ERROR_CHECK(err_code);
+  ret_code_t ret_val;
+  if (LEDS_NUMBER > 0)
+  {
+    bsp_board_init(BSP_INIT_LEDS);
+    ret_val = bsp_init(BSP_INIT_LEDS, NULL);
+    APP_ERROR_CHECK(ret_val);
+  }
+  // turn on the led to indicate we are in the bootloader
+  bsp_board_led_on(BSP_BOARD_LED_1); //indicate that the bootloader is active
 }
 
 static void on_error(void)
 {
-    do_reset();
+  do_reset();
 }
 
-/*
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_file_name)
 {
-
-    on_error();
+  on_error();
 }
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
-
-    on_error();
+  on_error();
 }
-*/
+
 void app_error_handler_bare(uint32_t error_code)
 {
-
-    on_error();
+  on_error();
 }
 
 /**
@@ -209,95 +137,171 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
 }
 void button_released(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-    ret_code_t err_code;
-
-    switch (action)
-    {
-    case NRF_GPIOTE_POLARITY_LOTOHI:
-    {
-        bsp_board_led_off(BSP_BOARD_LED_1);
-        bsp_board_led_off(BSP_BOARD_LED_0);
-        //turn off the button timer
-        err_code = app_timer_stop(m_timer_button_long_press_timeout); //stop the long press timerf
-        APP_ERROR_CHECK(err_code);
-        do_reset(); //reset and start over
-    }
-    break;
-    case NRF_GPIOTE_POLARITY_HITOLO:
-        break;
-    case NRF_GPIOTE_POLARITY_TOGGLE:
-        break;
-    }
+  switch (action)
+  {
+  case NRF_GPIOTE_POLARITY_LOTOHI:
+  {
+    bsp_board_led_off(BSP_BOARD_LED_1);
+    bsp_board_led_off(BSP_BOARD_LED_0);
+  }
+  break;
+  case NRF_GPIOTE_POLARITY_HITOLO:
+      break;
+  case NRF_GPIOTE_POLARITY_TOGGLE:
+      break;
+  }
 }
-static void gpio_init(void)
+
+/* This function is specifically to avoid the follwing issue:
+[173] GPIO: Writes to LATCH register take several CPU cycles to take effect */
+static __attribute__((optimize("O0"))) bool readPinState(uint32_t pin)
 {
-    ret_code_t err_code;
+  nrf_gpio_cfg_input(pin, GPIO_PIN_CNF_PULL_Pullup);
 
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
+  static volatile uint32_t temp;
+  temp = NRF_P0->IN;
+  temp = NRF_P0->IN;
+  temp = NRF_P0->IN;
 
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
+  if (nrf_gpio_pin_read(pin))
+    return true;
+  else
+    return false;
+}
 
+static bool gpio_init(void)
+{
+  ret_code_t err_code;
+  bool bootloader_pin_pressed = false;
+
+  err_code = nrf_drv_gpiote_init();
+  APP_ERROR_CHECK(err_code);
+    
+  nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
+  in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+  // enable button release interrupt only if the pin is pressed
+  if (readPinState(PLUS__PIN) == 0)
+  {
     err_code = nrf_drv_gpiote_in_init(PLUS__PIN, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(PLUS__PIN, true);
     APP_ERROR_CHECK(err_code);
 
+    bootloader_pin_pressed = true;
+  }
+
+  // enable button release interrupt only if the pin is pressed
+  if (readPinState(BUTTON_1) == 0)
+  {
     err_code = nrf_drv_gpiote_in_init(BUTTON_1, &in_config, button_released);
     nrf_drv_gpiote_in_event_enable(BUTTON_1, true);
     APP_ERROR_CHECK(err_code);
+
+    bootloader_pin_pressed = true;
+  }
+
+  return bootloader_pin_pressed;
+}
+
+static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
+{
+  if (int_type == NRF_DRV_RTC_INT_COMPARE0)
+  {
+    g_start_bootloader = true;
+  }
+}
+
+static void lfclk_config(void)
+{
+  ret_code_t err_code = nrf_drv_clock_init();
+  APP_ERROR_CHECK(err_code);
+
+  nrf_drv_clock_lfclk_request(NULL);
+}
+
+static void rtc_config(void)
+{
+  uint32_t err_code;
+
+  //Initialize RTC instance
+  nrf_drv_rtc_config_t config = NRF_DRV_RTC_DEFAULT_CONFIG;
+  config.prescaler = 4095;
+  config.interrupt_priority = 7;
+  err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
+  APP_ERROR_CHECK(err_code);
+
+  //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
+  err_code = nrf_drv_rtc_cc_set(&rtc, 0, 10 * 8,true);
+  APP_ERROR_CHECK(err_code);
+
+  //Power on RTC instance
+  nrf_drv_rtc_enable(&rtc);
+}
+
+static void rtc_uninit(void)
+{
+  nrf_drv_rtc_uninit(&rtc);
 }
 
 /**@brief Function for application main entry. */
 int main(void)
 {
-    ret_code_t ret_val;
-    leds_init(); //turn on the red led
-    // if bootloader is about to enter dfu mode,
-    //don't check for button press and immediately go into DFU
-    if (nrf_power_gpregret_get() != BOOTLOADER_DFU_START)
+  ret_code_t ret_val;
+  bool bootloader_pin_pressed = false;
+
+  leds_init(); //turn on the red led
+
+  // check if bootloader start flag was set before previous reset
+  if (nrf_power_gpregret_get() == BOOTLOADER_DFU_START)
+  {
+    g_start_bootloader = true;
+  }
+  else
+  // check for timeout or bootloader pins
+  {
+    // init GPIOS and init the release interrupts if applicable
+    bootloader_pin_pressed = gpio_init();
+
+    // if at least one bootloader button is pressed 
+    if (bootloader_pin_pressed)
     {
+      lfclk_start(); // start the low freq clock (for enter low power next)
 
-        gpio_init(); //set the gpio interrupt
-                     //check if bootloader button pressed
-                     //Casainho - note that I added GPIO pin 9 as an additional check for TSDZ2 wireless.
-                     //the remote already uses the PLUS__KEY to enter DFU
-                     // you could add an additional switch to pin 9 if the board pin is unreliable
-        // ie: if ((nrf_gpio_pin_read(9) == 0) || (nrf_gpio_pin_read(BUTTON_1) == 0)) // button pressed
-        if (nrf_gpio_pin_read(BUTTON_1) == 0) // button pressed
-        {
-            lfclk_start(); //start the low freq clock
-            timers_init(); //start the button timer
-                           //scheduler needed for app_timer and app_button event processing with bootloader
-            APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-            while (true) //loop while the button is pressed
-            {
-                app_sched_execute(); //execute the timer events
-                                     //  __WFE();             //low power mode
-                // Clear the internal event register.
-                //  __SEV();
-                //  __WFE();
-            }
-            // if the button is released before timeout, button_released() is called and the board resets into DFU
-        }
+      // start RTC timer timeout
+      rtc_config();
+
+      // will enter in low power mode and block
+      // Will unblock and move forward only when timeout happens or one of the bootloader buttons are released
+      __SEV();
+      __WFE();
+      __WFE();
+
+      // let's increase the clock frequency for regular values to save power
+      lfclk_config();
+
+      // RTC uninit because it will be used by the softdevice
+      rtc_uninit();
+      //start dfu mode
+      g_start_bootloader = true;
     }
-    // else go into the bootloader
-    // Protect MBR and bootloader code from being overwritten.
-    ret_val = nrf_bootloader_flash_protect(0, MBR_SIZE, false);
-    APP_ERROR_CHECK(ret_val);
-    ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
-    APP_ERROR_CHECK(ret_val);
+  }
+//continue to the bootloader
+  // Protect MBR and bootloader code from being overwritten.
+  ret_val = nrf_bootloader_flash_protect(0, MBR_SIZE, false);
+  APP_ERROR_CHECK(ret_val);
+  ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
+  APP_ERROR_CHECK(ret_val);
 
-    ret_val = app_timer_init();
-    APP_ERROR_CHECK(ret_val);
+  ret_val = app_timer_init();
+  APP_ERROR_CHECK(ret_val);
 
-    ret_val = nrf_bootloader_init(dfu_observer);
-    APP_ERROR_CHECK(ret_val);
-    //if the program is here there was either
-    //-no DFU requested in the bootloader
-    // or the DFU module detected no ongoing DFU operation and found a valid main application.
-    //so, load the installed application
-    bsp_board_led_off(BSP_BOARD_LED_1);
-    bsp_board_led_off(BSP_BOARD_LED_0);
-    nrf_bootloader_app_start();
+  ret_val = nrf_bootloader_init(dfu_observer);
+  APP_ERROR_CHECK(ret_val);
+  //if the program is here there was either
+  //-no DFU requested in the bootloader
+  // or the DFU module detected no ongoing DFU operation and found a valid main application.
+  //so, load the installed application
+  bsp_board_led_off(BSP_BOARD_LED_1);
+  bsp_board_led_off(BSP_BOARD_LED_0);
+  nrf_bootloader_app_start();
 }

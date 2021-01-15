@@ -17,6 +17,8 @@
     ```
 
 5. From the terminal window, navigate to the openocd directory, and enter the following command to start the openocd server:
+
+NOTE: donwload the bootloader HEX file from here: https://github.com/OpenSourceEBike/TSDZ2_wireless-bootloader/releases
    
     ```
     $ openocd -f stlink-v2.cfg -f nrf52.cfg
